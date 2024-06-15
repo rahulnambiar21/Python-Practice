@@ -14,4 +14,10 @@ urlpatterns = [
     path('forgot-password/',views.forgot_password,name='forgot-password'),
     path('verify-otp/',views.verify_otp,name='verify-otp'),
     path('new-password/',views.new_password,name='new-password'),
+    path('seller-add-product/',views.seller_add_product,name='seller-add-product'),
+    path('seller-view-product/',views.seller_view_product,name='seller-view-product'),
+    path('seller-product-details/<int:pk>/',views.seller_product_details,name='seller-product-details'),
+    path('seller-edit-product/<int:pk>/',views.seller_edit_product,name='seller-edit-product'),
+    path('seller-delete-product/<int:pk>/',views.seller_delete_product,name='seller-delete-product'),
+
 ]
