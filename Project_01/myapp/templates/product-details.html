@@ -1,0 +1,78 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+</head>
+<body class="animsition">
+	
+	<!-- Header -->
+	<header class="header-v4">
+	</header>
+		
+
+	<!-- Product Detail -->
+	<section class="sec-product-detail bg0 p-t-65 p-b-60">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-6 col-lg-7 p-b-30">
+					<div class="p-l-25 p-r-30 p-lr-0-lg">
+						<div class="wrap-slick3 flex-sb flex-w">
+							<div class="wrap-slick3-dots"></div>
+							<div class="wrap-slick3-arrows flex-sb-m flex-w"></div>
+
+							<div class="slick3 gallery-lb">
+								<div class="item-slick3" data-thumb="{{product.product_image.url}}">
+									<div class="wrap-pic-w pos-relative">
+										<img src="{{product.product_image.url}}" alt="IMG-PRODUCT">
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+					
+				<div class="col-md-6 col-lg-5 p-b-30">
+					<div class="p-r-50 p-t-5 p-lr-0-lg">
+						<h4 class="mtext-105 cl2 js-name-detail p-b-14">
+							{{product.product_name}}
+						</h4>
+
+						<span class="mtext-106 cl2">
+							{{product.product_price}}
+						</span>
+
+						<p class="stext-102 cl3 p-t-23">
+							{{product.product_desc}}
+						</p>
+						<br><br>
+						{% if request.session.email %}
+						<span class="mtext-106 cl2">
+							<a href="{% url 'seller-edit-product' pk=product.pk %}"><input type="button" class="btn btn-primary" value="Add to Cart">
+						</span>
+						{% if wishlist_flag == False %}
+						<span class="mtext-106 cl2">
+							<a href="{% url 'add-to-wishlist' pk=product.pk %}"><input type="button" class="btn btn-primary" value="Add to Wishlist">
+						</span>
+						{% else %}
+						<span class="mtext-106 cl2">
+							<a href="{% url 'remove-from-wishlist' pk=product.pk %}"><input type="button" class="btn btn-danger" value="Remove from Wishlist">
+						</span>
+						{% endif %}
+
+						{% else %}
+						<span class="mtext-106 cl2">
+							<a href="{% url 'login' %}"><input type="button" class="btn btn-primary" value="Login">
+						</span>
+
+						{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+</body>
+</html>
+{% endblock %}
