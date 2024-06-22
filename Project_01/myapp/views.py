@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from .models import User,Product,Wishlist
+from .models import User,Product,Wishlist,Cart
 import requests
 import random
 
@@ -60,6 +60,8 @@ def login(request):
 				request.session['profile_picture']=user.profile_picture.url
 				wishlists=Wishlist.objects.filter(user=user)
 				request.session['wishlist_count']=len(wishlists)
+				carts=Cart.objects.filter(user=user)
+				request.session['cart_count']=len(carts)
 				if user.usertype=="buyer":
 					return render(request,'index.html')
 				else:
@@ -218,6 +220,7 @@ def seller_product_details(request,pk):
 
 def product_details(request,pk):
 	wishlist_flag=False
+	cart_flag=False
 	product=Product.objects.get(pk=pk)
 	user=User.objects.get(email=request.session['email'])
 	try:
@@ -225,7 +228,13 @@ def product_details(request,pk):
 		wishlist_flag=True
 	except:
 		pass
-	return render(request,'product-details.html',{'product':product,'wishlist_flag':wishlist_flag})
+
+	try:
+		Cart.objects.get(user=user,product=product)
+		cart_flag=True
+	except:
+		pass
+	return render(request,'product-details.html',{'product':product,'wishlist_flag':wishlist_flag,'cart_flag':cart_flag})
 
 def seller_edit_product(request,pk):
 	product=Product.objects.get(pk=pk)
@@ -267,3 +276,47 @@ def remove_from_wishlist(request,pk):
 	wishlist= Wishlist.objects.get(user=user,product=product)
 	wishlist.delete()
 	return redirect('wishlist')
+
+def add_to_cart(request,pk):
+	product=Product.objects.get(pk=pk)
+	user=User.objects.get(email=request.session['email'])
+	Cart.objects.create(
+		user=user,
+		product=product,
+		product_price=product.product_price,
+		product_qty=1,
+		total_price=product.product_price,
+		)
+	return redirect('cart')
+
+def cart(request):
+	net_price=0
+	user=User.objects.get(email=request.session['email'])
+	carts=Cart.objects.filter(user=user)
+	for i in carts:
+		net_price=net_price+i.total_price
+	request.session['cart_count']=len(carts)
+	return render(request,'cart.html',{'carts':carts,'net_price':net_price})
+
+def remove_from_cart(request,pk):
+	product=Product.objects.get(pk=pk)
+	user=User.objects.get(email=request.session['email'])
+	cart= Cart.objects.get(user=user,product=product)
+	cart.delete()
+	return redirect('cart')
+
+def change_qty(request,pk):
+	cart=Cart.objects.get(pk=pk)
+	product_qty=int(request.POST['product_qty'])
+	cart.total_price=cart.product_price*product_qty
+	cart.product_qty=product_qty
+	cart.save()
+	return redirect('cart')
+
+def show_product(request,pc):
+	products=[]
+	if pc=="all":
+		products=Product.objects.all()
+	else:
+		products=Product.objects.filter(product_category=pc)
+	return render(request,'product.html',{'products':products})
