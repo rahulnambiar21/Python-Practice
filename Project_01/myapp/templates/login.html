@@ -32,9 +32,10 @@
 
 
 						<div class="bor8 m-b-20 how-pos4-parent">
-							<input class="stext-111 cl2 plh3 size-116 p-l-62 p-r-30" type="text" name="email" placeholder="Your Email Address">
+							<input class="stext-111 cl2 plh3 size-116 p-l-62 p-r-30" type="text" id="email" name="email" placeholder="Your Email Address">
 						</div>
 
+						<span id="email_error"></span>
 
 						<div class="bor8 m-b-20 how-pos4-parent">
 							<input class="stext-111 cl2 plh3 size-116 p-l-62 p-r-30" type="password" name="password" placeholder="Enter Password">
@@ -57,6 +58,29 @@
 	<div class="map">
 		<div class="size-303" id="google_map" data-map-x="40.691446" data-map-y="-73.886787" data-pin="{% static 'images/icons/pin.png' %}" data-scrollwhell="0" data-draggable="1" data-zoom="11"></div>
 	</div>
+
+	<script>
+          $("#email").change(function(){
+            var email=$(this).val();
+            //alert(email);
+            $.ajax({
+              url: '/ajax/validate_email/',
+              data: {
+                'email': email
+              },
+              dataType: 'json',
+              success: function (data) {
+                if (data.is_taken) {
+                  /*document.getElementById("email").style.border="5px solid red";*/
+                  document.getElementById("email_error").innerHTML="";
+                }else{
+                  document.getElementById("email_error").innerHTML="This Email ID Is Not Registered";
+                }
+              }
+            });
+          });
+
+        </script>
 
 
 </body>

@@ -28,4 +28,9 @@ urlpatterns = [
     path('remove-from-cart/<int:pk>/',views.remove_from_cart,name='remove-from-cart'),
     path('change-qty/<int:pk>/',views.change_qty,name='change-qty'),
     path('show-product/<str:pc>/',views.show_product,name='show-product'),
+    path('create-checkout-session/', views.create_checkout_session, name='payment'),
+    path('success.html/', views.success,name='success'),
+    path('cancel.html/', views.cancel,name='cancel'),
+    path('myorder/',views.myorder,name='myorder'),
+    path('ajax/validate_email/',views.validate_signup,name='validate_email'),
 ]

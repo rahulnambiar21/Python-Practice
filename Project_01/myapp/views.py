@@ -2,6 +2,14 @@ from django.shortcuts import render,redirect
 from .models import User,Product,Wishlist,Cart
 import requests
 import random
+from django.conf import settings # new
+from django.http.response import JsonResponse # new
+from django.views.decorators.csrf import csrf_exempt # new
+import json
+import stripe
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+YOUR_DOMAIN = 'http://localhost:8000'
 
 # Create your views here.
 def index(request):
@@ -60,7 +68,7 @@ def login(request):
 				request.session['profile_picture']=user.profile_picture.url
 				wishlists=Wishlist.objects.filter(user=user)
 				request.session['wishlist_count']=len(wishlists)
-				carts=Cart.objects.filter(user=user)
+				carts=Cart.objects.filter(user=user,payment_status=False)
 				request.session['cart_count']=len(carts)
 				if user.usertype=="buyer":
 					return render(request,'index.html')
@@ -230,7 +238,7 @@ def product_details(request,pk):
 		pass
 
 	try:
-		Cart.objects.get(user=user,product=product)
+		Cart.objects.get(user=user,product=product,payment_status=False)
 		cart_flag=True
 	except:
 		pass
@@ -292,7 +300,7 @@ def add_to_cart(request,pk):
 def cart(request):
 	net_price=0
 	user=User.objects.get(email=request.session['email'])
-	carts=Cart.objects.filter(user=user)
+	carts=Cart.objects.filter(user=user,payment_status=False)
 	for i in carts:
 		net_price=net_price+i.total_price
 	request.session['cart_count']=len(carts)
@@ -320,3 +328,51 @@ def show_product(request,pc):
 	else:
 		products=Product.objects.filter(product_category=pc)
 	return render(request,'product.html',{'products':products})
+
+@csrf_exempt
+def create_checkout_session(request):
+	amount = int(json.load(request)['post_data'])
+	final_amount=amount*100
+	
+	session = stripe.checkout.Session.create(
+		payment_method_types=['card'],
+		line_items=[{
+			'price_data': {
+				'currency': 'inr',
+				'product_data': {
+					'name': 'Checkout Session Data',
+					},
+				'unit_amount': final_amount,
+				},
+			'quantity': 1,
+			}],
+		mode='payment',
+		success_url=YOUR_DOMAIN + '/success.html',
+		cancel_url=YOUR_DOMAIN + '/cancel.html',)
+	print(session.id)
+	return JsonResponse({'id': session.id})
+
+def success(request):
+	user=User.objects.get(email=request.session['email'])
+	carts=Cart.objects.filter(user=user,payment_status=False)
+	for i in carts:
+		i.payment_status=True
+		i.save()
+	carts=Cart.objects.filter(user=user,payment_status=False)
+	request.session['cart_count']=len(carts)
+	return render(request,'success.html')
+
+def cancel(request):
+	return render(request,'cancel.html')
+
+def myorder(request):
+	user=User.objects.get(email=request.session['email'])
+	carts=Cart.objects.filter(user=user,payment_status=True)
+	return render(request,'myorder.html',{'carts':carts})
+
+def validate_signup(request):
+	email=request.GET.get('email')
+	data={
+		'is_taken':User.objects.filter(email__iexact=email).exists()
+	}
+	return JsonResponse(data)
